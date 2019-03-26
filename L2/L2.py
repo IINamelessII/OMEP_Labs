@@ -11,8 +11,11 @@ m = 4
 while True:
     m += 1
     a = [[randint(YMIN, YMAX) for j in range(m)] for i in range(3)]
+    #y average
     y_av = [np.mean(i) for i in a]
+    #dispersion
     ds = [np.var(i) for i in a]
+    #osnovne vidhilenya
     o0 = (4 * (m - 1) / (m * (m - 4))) ** 0.5
     fs = list(map(lambda x, y: max(x / y, y / x), 
                 [ds[0], ds[0], ds[1]], [ds[1], ds[2], ds[2]]))
@@ -20,6 +23,8 @@ while True:
     rs = [abs(os[i] - 1) / o0 for i in range(3)]
     if sum([bool(rs[i] < RKR[m - 1]) for i in range(3)]) == 3:
         break
+
+#normovani coef rivnyanya regressij
 mx1, mx2 = np.mean(X1), np.mean(X2)
 my = np.mean(y_av)
 a1, a2, a3 = tuple(map(np.mean, 
@@ -30,6 +35,8 @@ a11 = np.mean([X1[i] * y_av[i] for i in range(3)])
 a22 = np.mean([X2[i] * y_av[i] for i in range(3)])
 b = np.linalg.solve([[1, mx1, mx2], [mx1, a1, a2], [mx2, a2, a3]], 
                     [my, a11, a22])
+
+#naturalizatsia
 dx1, dx2 = (X1MAX - X1MIN) / 2, (X2MAX - X2MIN) / 2
 x10, x20 = (X1MAX + X1MIN) / 2, (X2MAX + X2MIN) / 2
 nat_a = [b[0] - b[1] * x10 / dx1 - b[2] * x20 / dx2, b[1] / dx1, b[2] / dx2]
