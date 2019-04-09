@@ -18,10 +18,7 @@ def fisher(f3, f4):
 
 
 def all_stuff(n):
-    """
-    Build regression equals,...
-    """
-
+    
     def print_equalations(b, x, add=0):
         print(
             *[('{:.3f} + ' + ' + '.join(['{:.3f}*{:>2}' for i in range(n - 1)]) + ' = {:.3f}').format(
@@ -98,6 +95,10 @@ def all_stuff(n):
     new_y = [new_b[0] + sum([new_b[j + 1] * x[i][j] for j in range(n - 1)])
     for i in range(n)]
 
+    if n == 8:
+        print('WARNING: b4 -> b12, b5 -> b13, b6 -> b23, b7 -> b123')
+        print('WARNING: x4 -> x12, x5 -> x13, x6 -> x23, x7 -> x123')
+        
     print('y = b0 + ' + ' + '.join(['b{}x{}'.format(i + 1, i + 1) for i in range(n - 1)]))
     y_template = 'y = {:.3f} + ' + ' + '.join(['{:.3f}*x' + str(i + 1) for i in range(n - 1)])
     print(y_template.format(*b))
@@ -132,5 +133,5 @@ YMAX, YMIN = 200 + np.mean(XMAX[:3]), 200 + np.mean(XMIN[:3])
 
 if __name__ == "__main__":
     if all_stuff(n=4):
-        print('\nWe carry out a full three-factor experiment:\n')
+        print('\nWe carry out a full three-factor experiment:')
         all_stuff(n=8)
