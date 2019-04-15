@@ -62,10 +62,20 @@ def all_stuff(n):
             [1, 0, -1.215, 0, 0, 0, 0, 0, 1.47623, 0, 0]
         ]
     #Naturalizirovanie x
-    x = [[
-        n_matrix[i][j + 1] * abs(XMAX[j] if n_matrix[i][j + 1] > 0 else XMIN[j])
-         for j in range(n - 1)]
-          for i in range(n)]
+    if n == 4 or n == 8:
+        x = [[
+            n_matrix[i][j + 1] * abs(XMAX[j] if n_matrix[i][j + 1] > 0 else XMIN[j])
+            for j in range(n - 1)]
+            for i in range(n)]
+    elif n == 11:
+        x = [[
+            n_matrix[i][j + 1] * abs(XMAX[j] if n_matrix[i][j + 1] > 0 else XMIN[j])
+            for j in range(n - 1)]
+            for i in range(8)]
+        x += [[
+            (n_matrix[i][j+1] * (XMAX[j] - (XMAX[j] + XMIN[j]) / 2)
+             + (XMAX[j] + XMIN[j]) / 2 if n_matrix[i][j + 1] > 0 else 0)
+              ** (j // 7 + 1) for j in range(10)] for i in range(3)]
     x_mean = [np.mean([j[i] for j in x]) for i in range(n - 1)]
     
     m = 2
@@ -133,11 +143,7 @@ def all_stuff(n):
 
     #Fisher's criterion
     d = sum([bool(i) for i in new_b])
-    # f4 = n - d
-    if n != d:
-        f4 = n - d
-    else:
-        f2, f4 = n + 1, 1
+    f4 = n - d
     should_do_more = False
     if f4: #if f4 is not 0 (in that case will be division by zero)
         s_quad_ad = m / f4 * sum([(new_y[i] - y_mean[i]) ** 2
@@ -162,9 +168,4 @@ XMAX += [i ** 2 for i in XMAX[:3]]
 YMAX, YMIN = 200 + np.mean(XMAX[:3]), 200 + np.mean(XMIN[:3])
 
 if __name__ == "__main__":
-    # if all_stuff(n=4):
-    #     print('\nWe carry out a full three-factor experiment:')
-    #     all_stuff(n=8)
-    all_stuff(n=8)
-    print('HELLO WORLD')
     all_stuff(n=11)
