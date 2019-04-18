@@ -23,10 +23,11 @@ def all_stuff(n):
         print(
             *[('{:.3f} + ' + ' + '.join(['{:.3f}*{:>2}' for i in range(n - 1)]) + ' = {:.3f}').format(
             b[0], *[b[j // 2 + 1] if not j % 2 else x[i][j // 2 + add] for j in range((n - 1) * 2)],
-             b[0] + sum([b[j + 1] * x[i][j + add] for j in range(n - 1)])) for i in range(n)],
+             b[0] + sum([b[j + 1] * x[i][j + add] for j in range(n - 1)])) for i in range(N)],
         sep='\n')
 
     if n == 4:
+        N = 4
         #Normirovanie x
         n_matrix = [
             [1, -1, -1, -1], 
@@ -35,6 +36,7 @@ def all_stuff(n):
             [1, 1, 1, -1]
         ]
     elif n == 8:
+        N = 8
         #Normirovanie x
         n_matrix = [
             [1, -1, -1, -1, 1, 1, 1, -1], 
@@ -47,6 +49,7 @@ def all_stuff(n):
             [1, -1, -1, 1, 1, -1, -1, 1]
         ]
     elif n == 11:
+        N = 15
         #Normirovanie x
         n_matrix = [
             [1, -1, -1, -1, 1, 1, 1, -1, 1, 1, 1], 
@@ -59,14 +62,18 @@ def all_stuff(n):
             [1, -1, -1, 1, 1, -1, -1, 1, 1, 1, 1],
             [1, -1.215, 0, 0, 0, 0, 0, 0, 1.47623, 0, 0],
             [1, 1.215, 0, 0, 0, 0, 0, 0, 1.47623, 0, 0],
-            [1, 0, -1.215, 0, 0, 0, 0, 0, 1.47623, 0, 0]
+            [1, 0, -1.215, 0, 0, 0, 0, 0, 0, 1.47623, 0],
+            [1, 0, 1.215, 0, 0, 0, 0, 0, 0, 1.47623, 0],
+            [1, 0, 0, -1.215, 0, 0, 0, 0, 0, 0, 1.47623],
+            [1, 0, 0, 1.215, 0, 0, 0, 0, 0, 0, 1.47623],
+            [1,0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ]
     #Naturalizirovanie x
     if n == 4 or n == 8:
         x = [[
             n_matrix[i][j + 1] * abs(XMAX[j] if n_matrix[i][j + 1] > 0 else XMIN[j])
             for j in range(n - 1)]
-            for i in range(n)]
+            for i in range(N)]
     elif n == 11:
         x = [[
             n_matrix[i][j + 1] * abs(XMAX[j] if n_matrix[i][j + 1] > 0 else XMIN[j])
@@ -74,19 +81,19 @@ def all_stuff(n):
             for i in range(8)]
         x += [[(n_matrix[i][j+1] * (XMAX[j] - (XMAX[j] + XMIN[j]) / 2)
                 + (XMAX[j] + XMIN[j]) / 2)
-              ** (j // 7 + 1) for j in range(10)] for i in range(3)]
+              ** (j // 7 + 1) for j in range(10)] for i in range(7)]
     x_mean = [np.mean([j[i] for j in x]) for i in range(n - 1)]
     
     m = 2
     while True:
         m += 1
         
-        y = [[uniform(YMIN, YMAX) for j in range(m)] for i in range(n)]
+        y = [[uniform(YMIN, YMAX) for j in range(m)] for i in range(N)]
         y_mean = [np.mean(i) for i in y]
         my = np.mean(y)
 
-        a = [np.mean([x[j][i] * y_mean[j] for j in range(n)]) for i in range(n - 1)]
-        a_2d = [[np.mean([x[k][i] * x[k][j] for k in range(n)]) for j in range(n - 1)]
+        a = [np.mean([x[j][i] * y_mean[j] for j in range(N)]) for i in range(n - 1)]
+        a_2d = [[np.mean([x[k][i] * x[k][j] for k in range(N)]) for j in range(n - 1)]
                 for i in range(n - 1)]
         #naturalizovani coef
         b = np.linalg.solve(
@@ -105,22 +112,22 @@ def all_stuff(n):
 
         #Kokhren check
         gp = max(dispersions) / sum(dispersions)
-        f1, f2 = m - 1, n
+        f1, f2 = m - 1, N
         if gp < cohren(f1, f2):
             break
 
     #Student check
     s_b = np.mean(dispersions)
-    s_quad_betta = (s_b / m / n)
+    s_quad_betta = (s_b / m / N)
     s_betta = s_quad_betta ** .5
     bettas = [np.mean([y_mean[j] * n_matrix[i][j] for j in range(n)])
-    for i in range(n)]
+    for i in range(N)]
     t = [abs(i) / s_betta for i in bettas]
     f3 = f1 * f2
     t_table = student(f3)
     new_b = [b[i] if t[i] > t_table else 0 for i in range(n)]
     new_y = [new_b[0] + sum([new_b[j + 1] * x[i][j] for j in range(n - 1)])
-    for i in range(n)]
+    for i in range(N)]
 
     if n == 8:
         print('WARNING: b4 -> b12, b5 -> b13, b6 -> b23, b7 -> b123')
@@ -136,17 +143,19 @@ def all_stuff(n):
     if n == 4 or n == 8:
         print(y_template.format(*b_norm))
         print_equalations(b_norm, n_matrix, add=1)
-    print('Y average: ' + ', '.join(['{:.3f}' for i in range(n)]).format(*y_mean))
-    print(''.join([' t{}>t_tabl ' if i else ' t{}<t_tabl '
-    for i in new_b]).format(*[i for i in range(n)]))
+    print('Y average: ' + ', '.join(['{:.3f}' for i in range(N)]).format(*y_mean))
+    corrected_y_template = 'y = {:.3f} + ' + ' + '.join([('{:.3f}*x' if new_b[i + 1] else '')
+     + str(i + 1) for i in range(n - 1)])
+    print('Equation after correction:')
+    print(corrected_y_template.format(*list(filter(None, new_b))))
 
     #Fisher's criterion
     d = sum([bool(i) for i in new_b])
-    f4 = n - d
+    f4 = N - d
     should_do_more = False
     if f4: #if f4 is not 0 (in that case will be division by zero)
         s_quad_ad = m / f4 * sum([(new_y[i] - y_mean[i]) ** 2
-        for i in range(n)])
+        for i in range(N)])
         fp = s_quad_ad / s_quad_betta
         if fp < fisher(f3, f4):
             print('Fisher\'s criterion: The equation is adequate to the model')
