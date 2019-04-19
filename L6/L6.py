@@ -1,5 +1,5 @@
 from functools import partial
-from random import random, uniform
+from random import random
 import numpy as np
 from scipy.stats import f, t
 
