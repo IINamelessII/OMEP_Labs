@@ -1,5 +1,5 @@
 from functools import partial
-from random import uniform
+from random import random, uniform
 import numpy as np
 from scipy.stats import f, t
 
@@ -60,12 +60,12 @@ def all_stuff(n):
             [1, 1, -1, -1, -1, -1, 1, 1, 1, 1, 1],
             [1, -1, 1, -1, -1, 1, -1, 1, 1, 1, 1],
             [1, -1, -1, 1, 1, -1, -1, 1, 1, 1, 1],
-            [1, -1.215, 0, 0, 0, 0, 0, 0, 1.47623, 0, 0],
-            [1, 1.215, 0, 0, 0, 0, 0, 0, 1.47623, 0, 0],
-            [1, 0, -1.215, 0, 0, 0, 0, 0, 0, 1.47623, 0],
-            [1, 0, 1.215, 0, 0, 0, 0, 0, 0, 1.47623, 0],
-            [1, 0, 0, -1.215, 0, 0, 0, 0, 0, 0, 1.47623],
-            [1, 0, 0, 1.215, 0, 0, 0, 0, 0, 0, 1.47623],
+            [1, -1.73, 0, 0, 0, 0, 0, 0, 2.9929, 0, 0],
+            [1, 1.73, 0, 0, 0, 0, 0, 0, 2.9929, 0, 0],
+            [1, 0, -1.73, 0, 0, 0, 0, 0, 0, 2.9929, 0],
+            [1, 0, 1.73, 0, 0, 0, 0, 0, 0, 2.9929, 0],
+            [1, 0, 0, -1.73, 0, 0, 0, 0, 0, 0, 2.9929],
+            [1, 0, 0, 1.73, 0, 0, 0, 0, 0, 0, 2.9929],
             [1,0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
         ]
     #Naturalizirovanie x
@@ -79,16 +79,17 @@ def all_stuff(n):
             n_matrix[i][j + 1] * abs(XMAX[j] if n_matrix[i][j + 1] > 0 else XMIN[j])
             for j in range(n - 1)]
             for i in range(8)]
-        x += [[(n_matrix[i][j+1] * (XMAX[j] - (XMAX[j] + XMIN[j]) / 2)
+        x += [[(n_matrix[i][j + 1] * (XMAX[j] - (XMAX[j] + XMIN[j]) / 2)
                 + (XMAX[j] + XMIN[j]) / 2)
               ** (j // 7 + 1) for j in range(10)] for i in range(7)]
     x_mean = [np.mean([j[i] for j in x]) for i in range(n - 1)]
     
-    m = 2
+    m = 1
     while True:
         m += 1
-        
-        y = [[uniform(YMIN, YMAX) for j in range(m)] for i in range(N)]
+        #random() * 10 return pseudo-random float value between 0.0 and 10.0
+        y = [[fx123(*x[i][:3]) + random() * 10 - 5 for j in range(m)] for i in range(N)]
+
         y_mean = [np.mean(i) for i in y]
         my = np.mean(y)
 
@@ -100,14 +101,6 @@ def all_stuff(n):
             [[1, *x_mean], *[[x_mean[j], *[i[j] for i in a_2d]] for j in range(n - 1)]], 
             [my, *a])
 
-        if n == 4:
-            dx = [(XMAX[i] - XMIN[i]) / 2 for i in range(3)]
-            #normirovanii coef
-            b_norm = [my, *[b[i + 1] * dx[i] for i in range(3)]]
-        elif n == 8:
-            b_norm = [np.mean([y_mean[j] * n_matrix[j][i] for j in range(n)])
-             for i in range(n)]
-        
         dispersions = [np.var(i) for i in y]
 
         #Kokhren check
@@ -140,40 +133,46 @@ def all_stuff(n):
     y_template = 'y = {:.3f} + ' + ' + '.join(['{:.3f}*x' + str(i + 1) for i in range(n - 1)])
     print(y_template.format(*b))
     print_equalations(b, x)
-    if n == 4 or n == 8:
-        print(y_template.format(*b_norm))
-        print_equalations(b_norm, n_matrix, add=1)
     print('Y average: ' + ', '.join(['{:.3f}' for i in range(N)]).format(*y_mean))
-    corrected_y_template = 'y = {:.3f} + ' + ' + '.join([('{:.3f}*x' if new_b[i + 1] else '')
-     + str(i + 1) for i in range(n - 1)])
+    corrected_y_template = ('y = {:.3f} + ' if new_b[0] else 'y = ') + ' + '.join(list(filter(None, [('{:.3f}*x' + str(i + 1) if new_b[i + 1] else '')
+     for i in range(n - 1)])))
     print('Equation after correction:')
-    print(corrected_y_template.format(*list(filter(None, new_b))))
+    print(corrected_y_template.format(*list(filter(None, new_b))) if sum(new_b) else 'No significant coefficients')
 
     #Fisher's criterion
     d = sum([bool(i) for i in new_b])
     f4 = N - d
-    should_do_more = False
+    should_do_more = True
     if f4: #if f4 is not 0 (in that case will be division by zero)
         s_quad_ad = m / f4 * sum([(new_y[i] - y_mean[i]) ** 2
         for i in range(N)])
         fp = s_quad_ad / s_quad_betta
         if fp < fisher(f3, f4):
-            print('Fisher\'s criterion: The equation is adequate to the model')
+            print('Fisher\'s criterion: The equation is adequate to the model\n')
+            should_do_more = False
         else:
-            should_do_more = True
-            print('Fisher\'s criterion: The equation is not adequate to the model')
+            print('Fisher\'s criterion: The equation is not adequate to the model\n')
     else:
-        print('All coefficients are significant, we should increase N to N > k')
+        print('All coefficients are significant, we should increase N to N > k\n')
     return should_do_more
 
 
-XMIN = [-2, 0, -4]
-XMIN += [i * j for i in XMIN for j in XMIN if i < j] + [XMIN[0] * XMIN[1] * XMIN[2]]
+def fx123(x, y, z):
+    #f(x1, x2, x3) by variant
+    return (9.1 + 1.8 * x + 6.5 * y + 8.7 * z
+     + 2 * x ** 2 + 0.8 * y ** 2 + 8.6 * z ** 2 
+     + 8.6 * x * y + 0.9 * x * z + 0.3 * y * z + 9.4 * x * y *z)
+
+
+XMIN = [-5, -25, -5]
+XMIN += [XMIN[i] * XMIN[j] for i in range(3) for j in range(3) if i < j] + [XMIN[0] * XMIN[1] * XMIN[2]]
 XMIN += [i ** 2 for i in XMIN[:3]]
-XMAX = [3, 10, 8]
-XMAX += [i * j for i in XMAX for j in XMAX if i < j] + [XMAX[0] * XMAX[1] * XMAX[2]]
+XMAX = [15, 10, 20]
+XMAX += [XMAX[i] * XMAX[j] for i in range(3) for j in range(3) if i < j] + [XMAX[0] * XMAX[1] * XMAX[2]]
 XMAX += [i ** 2 for i in XMAX[:3]]
-YMAX, YMIN = 200 + np.mean(XMAX[:3]), 200 + np.mean(XMIN[:3])
+
 
 if __name__ == "__main__":
-    all_stuff(n=11)
+    if all_stuff(n=4):
+        if all_stuff(n=8):
+            all_stuff(n=11)

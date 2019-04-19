@@ -79,7 +79,7 @@ def all_stuff(n):
             n_matrix[i][j + 1] * abs(XMAX[j] if n_matrix[i][j + 1] > 0 else XMIN[j])
             for j in range(n - 1)]
             for i in range(8)]
-        x += [[(n_matrix[i][j+1] * (XMAX[j] - (XMAX[j] + XMIN[j]) / 2)
+        x += [[(n_matrix[i][j + 1] * (XMAX[j] - (XMAX[j] + XMIN[j]) / 2)
                 + (XMAX[j] + XMIN[j]) / 2)
               ** (j // 7 + 1) for j in range(10)] for i in range(7)]
     x_mean = [np.mean([j[i] for j in x]) for i in range(n - 1)]
@@ -168,10 +168,10 @@ def all_stuff(n):
 
 
 XMIN = [-2, 0, -4]
-XMIN += [i * j for i in XMIN for j in XMIN if i < j] + [XMIN[0] * XMIN[1] * XMIN[2]]
+XMIN += [XMIN[i] * XMIN[j] for i in range(3) for j in range(3) if i < j] + [XMIN[0] * XMIN[1] * XMIN[2]]
 XMIN += [i ** 2 for i in XMIN[:3]]
 XMAX = [3, 10, 8]
-XMAX += [i * j for i in XMAX for j in XMAX if i < j] + [XMAX[0] * XMAX[1] * XMAX[2]]
+XMAX += [XMAX[i] * XMAX[j] for i in range(3) for j in range(3) if i < j] + [XMAX[0] * XMAX[1] * XMAX[2]]
 XMAX += [i ** 2 for i in XMAX[:3]]
 YMAX, YMIN = 200 + np.mean(XMAX[:3]), 200 + np.mean(XMIN[:3])
 
